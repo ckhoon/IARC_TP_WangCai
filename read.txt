@@ -1,0 +1,38 @@
+File information:
+
+1. ardupilot:
+	default program.
+
+2. ardupilot_garuda_ :
+	current sketch.
+
+3. Program standalone to combine OF sensor to APM:
+	standalone program for APM to communicate with OF sensor. It's Library is inside the folder. sonar alt with baro climbrate.
+
+4. program with 50hz totx,toty update and 50hz x,y control:
+	program with 50hzs update and control of x,y.Alt is controlled in 100hz.It's Library is inside the folder. This program works better.sonar alt with baro climbrate.
+
+5. program with 100hz totx, toty update and 50hzs x,y control:
+	program with 100hz update and 50hz control of x,y. alt is controlled in 100 hz.It's Library is inside the folder. sonar alt with baro climbrate.
+
+6. program with sonar alt and baro climb_rate: 
+	program with sonar alt and baro climb_rate.It's Library is inside the folder.
+
+7. program with sonar alt and sonar climb_rate:
+	program with sonar alt and climb_rate.It's Library is inside the folder.
+
+
+Major changes inside the code:
+1. Ardupilot
+2. Attitude
+3. Log
+4. Sensor
+5. Inertia
+6. Test
+7. config
+8. Setup
+9. System
+
+Major changes inside the library:
+1. AP_HAL_AVR
+2. AP_InertialNAV - only for sonar alt and climbrate based alt control. 
