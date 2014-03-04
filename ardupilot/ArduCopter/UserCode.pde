@@ -97,7 +97,71 @@ void userhook_50Hz()
 #ifdef USERHOOK_MEDIUMLOOP
 void userhook_MediumLoop()
 {
+#define USER_TAKEOFF 0
+#define USER_HOVER 1
+#define USER_MOVE1 2
+#define USER_MOVE2 3
+#define USER_HOVER2 4
+#define USER_LAND 5
+#define USER_RADIO_LOW	1000
+#define USER_RADIO_HIGH	2000
+
     // put your 10Hz code here
+	static uint16_t state = USER_TAKEOFF;
+	static uint16_t nHoverCounter = 0;
+	static uint16_t nMoveDistance = 0;
+
+	if (g.rc_6.radio_in < USER_RADIO_LOW) {
+    	//hal.console->printf(("\n radio 6 LOW-> %d"), g.rc_6.radio_in);
+		state = USER_TAKEOFF;
+    	nHoverCounter = 0;
+    }else if (g.rc_6.radio_in > USER_RADIO_HIGH) {
+    	//hal.console->printf(("\n radio 6 HIGH-> %d"), g.rc_6.radio_in);
+    	switch(state){
+    		case USER_TAKEOFF :
+					if (current_loc.alt < 100) {
+						forceTakeOff = true;
+						controller_desired_alt += 1;
+						if (controller_desired_alt < 60)
+							controller_desired_alt = 60;
+					}
+					else {
+						state = USER_HOVER;
+						forceTakeOff = false;
+					}
+    				break;
+    		case USER_HOVER :
+    				if (nHoverCounter++ > 50){
+    					nHoverCounter = 0;
+						state = USER_MOVE1;
+    				}
+    				break;
+    		case USER_MOVE1 :
+    				if (nMoveDistance++ < 50){
+    					tot_x_cm += 2; // fly to the left
+    					//tot_y_cm += 1; // fly to the back
+    				}
+    				else if (nMoveDistance++ < 100){
+    					tot_x_cm += 1; // fly to the left
+    					//tot_y_cm += 1; // fly to the back
+    				}
+    				else {
+    					nMoveDistance = 0;
+    					state = USER_LAND;
+    				}
+    				break;
+    		case USER_LAND :
+					if (current_loc.alt > 30) {
+						controller_desired_alt -= 1;
+					}
+					if (controller_desired_alt <= 30) {
+						set_land_complete(true);
+			            set_throttle_out(0, false);
+			            throttle_accel_deactivate();
+					}
+    				break;
+    	}
+    }
 }
 #endif
 
@@ -111,10 +175,12 @@ void userhook_SlowLoop()
 #ifdef USERHOOK_SUPERSLOWLOOP
 void userhook_SuperSlowLoop()
 {
+    // put your 1Hz code here
+/*
 	static bool bTakeoff = true;
 	static uint16_t nHoverCounter = 0;
-    // put your 1Hz code here
-    if (g.rc_6.radio_in < 1000) {
+
+	if (g.rc_6.radio_in < 1000) {
     	//hal.console->printf(("\n radio 6 LOW-> %d"), g.rc_6.radio_in);
     	bTakeoff = true;
     	nHoverCounter = 0;
@@ -135,5 +201,6 @@ void userhook_SuperSlowLoop()
     		}
     	}
     }
+    */
 }
 #endif

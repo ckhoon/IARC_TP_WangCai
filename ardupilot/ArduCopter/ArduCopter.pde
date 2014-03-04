@@ -373,6 +373,13 @@ static AP_RangeFinder_MaxsonarXL *sonar;
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
+// Wang Cai variables
+////////////////////////////////////////////////////////////////////////////////
+static bool forceTakeOff = false;
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Global variables
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1702,7 +1709,6 @@ void update_roll_pitch_mode(void)
     case ROLL_PITCH_STABLE_OF:
     	// ignore roll_pitch when UAV is on ground
         if (!ap.land_complete) {
-
             // apply SIMPLE mode transform
 			update_simple_mode();
 			// convert pilot input to lean angles
@@ -1976,7 +1982,7 @@ void update_throttle_mode(void)
                     set_throttle_takeoff();
                 }else{
                 	//START - modified to enable auto take off
-                	if (g.rc_6.radio_in > 2000) {
+                	if (forceTakeOff) {
                         set_land_complete(false);
                         motors.slow_start(true);
                 	}else{
