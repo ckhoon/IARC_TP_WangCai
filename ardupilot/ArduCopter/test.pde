@@ -23,6 +23,10 @@ static int8_t   test_shell(uint8_t argc,                const Menu::arg *argv);
 static int8_t   test_sonar(uint8_t argc,                const Menu::arg *argv);
 #endif
 
+#if HIL_MODE != HIL_MODE_ATTITUDE && HIL_MODE != HIL_MODE_SENSORS
+static int8_t   test_CAS(uint8_t argc,                const Menu::arg *argv);
+#endif
+
 // Creates a constant array of structs representing menu options
 // and stores them in Flash memory, not RAM.
 // User enters the string in the console to call the functions on the right.
@@ -46,6 +50,7 @@ const struct Menu::command test_menu_commands[] PROGMEM = {
 #if HIL_MODE != HIL_MODE_ATTITUDE && HIL_MODE != HIL_MODE_SENSORS
     {"sonar",               test_sonar},
 #endif
+    {"cas",                 test_CAS},
 };
 
 // A Macro to create the Menu
@@ -427,6 +432,19 @@ test_sonar(uint8_t argc, const Menu::arg *argv)
     return (0);
 }
 #endif
+
+static int8_t   
+test_CAS(uint8_t argc,                const Menu::arg *argv){
+#if CONFIG_CAS == ENABLED    
+    init_CAS();
+    print_hit_enter();
+    while(!cliSerial->available()){
+        delay(100);
+        cliSerial->printf_P(PSTR("CAS: %d cm\n"),read_CAS());
+    }
+#endif
+    return (0);
+}
 
 static void print_hit_enter()
 {

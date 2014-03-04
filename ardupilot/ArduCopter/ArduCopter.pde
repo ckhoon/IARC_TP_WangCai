@@ -1,6 +1,6 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
-#define THISFIRMWARE "ArduCopter V3.2-dev"
+#define THISFIRMWARE "ArduCopter V3.2-dev  IARC-RAC-custom V1.0"
 /*
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -948,6 +948,10 @@ void setup() {
             &sonar_mode_filter);
 #endif
 
+#if CONFIG_CAS == ENABLED
+    setup_CAS();
+#endif
+    
     rssi_analog_source      = hal.analogin->channel(g.rssi_pin);
     board_vcc_analog_source = hal.analogin->channel(ANALOG_INPUT_BOARD_VCC);
 

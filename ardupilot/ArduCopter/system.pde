@@ -241,6 +241,10 @@ static void init_ardupilot()
     init_sonar();
 #endif
 
+#if CONFIG_CAS == ENABLED
+    init_CAS();
+#endif
+
     // initialize commands
     // -------------------
     init_commands();
