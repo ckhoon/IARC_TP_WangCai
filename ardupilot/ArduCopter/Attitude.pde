@@ -29,6 +29,40 @@ static void get_pilot_desired_lean_angles(int16_t roll_in, int16_t pitch_in, int
     pitch_out = pitch_in * _scaler;
 }
 
+// get_mavlink_desired_lean_angles - created by CK to test OF movement
+// returns desired angle in centi-degrees
+static void get_mavlink_desired_lean_angles(int16_t &roll_out, int16_t &pitch_out)
+{
+	if (b_ofSetpt){
+		int32_t new_roll = 0;
+		int32_t p,i,d;
+
+		if( roll_out == 0 && current_loc.alt < 1500) {
+			float of_xError = of_xTravelled_cm - of_xSetPt_cm;
+			//if (of_xError<-25 || of_xError>25){
+				p = g.pid_optflow_roll.get_p(-of_xError);                      //NOTE: -tot_x_cm is nagative for error calculation.
+				i = g.pid_optflow_roll.get_i(-of_xError, 0.010f);              // we could use the last update time to calculate the time change
+				d = g.pid_optflow_roll.get_d(-of_xError, 0.010f);
+				//hal.console->printf(("\n RP: %d ::"),p);
+				//hal.console->printf((" RI: %d ::"),i);
+				//hal.console->printf((" RD: %d ::"),d);
+				new_roll = p+i+d;
+			//}
+			// limit amount of change and maximum angle
+				new_roll = constrain_int32(new_roll, (new_roll-20), (new_roll+20));
+		}else{
+            g.pid_optflow_roll.reset_I();
+			of_xSetPt_cm = of_xTravelled_cm;
+		}
+
+		new_roll = constrain_int32(new_roll, -900, 900);
+		//hal.console->printf(("\n of_roll %d ::"),of_roll);
+		//hal.console->printf(("input_roll: %d ::"),input_roll);
+		roll_out = roll_out+new_roll;
+	}
+
+}
+
 static void
 get_stabilize_roll(int32_t target_angle)
 {
@@ -635,13 +669,15 @@ get_of_roll(int32_t input_roll)
         tot_x_cm += of_x_cm;
         // only stop roll if caller isn't modifying roll
         if( input_roll == 0 && current_loc.alt < 1500) {
-            p = g.pid_optflow_roll.get_p(-tot_x_cm);                      //NOTE: -tot_x_cm is nagative for error calculation.
-            i = g.pid_optflow_roll.get_i(-tot_x_cm,0.010f);              // we could use the last update time to calculate the time change
-            d = g.pid_optflow_roll.get_d(-tot_x_cm,0.010f);              
-            //hal.console->printf(("\n RP: %d ::"),p);
-            //hal.console->printf((" RI: %d ::"),i);
-            //hal.console->printf((" RD: %d ::"),d);
-            new_roll = p+i+d;
+        	if (!b_ofSetpt){
+				p = g.pid_optflow_roll.get_p(-tot_x_cm);                      //NOTE: -tot_x_cm is nagative for error calculation.
+				i = g.pid_optflow_roll.get_i(-tot_x_cm,0.010f);              // we could use the last update time to calculate the time change
+				d = g.pid_optflow_roll.get_d(-tot_x_cm,0.010f);
+				//hal.console->printf(("\n RP: %d ::"),p);
+				//hal.console->printf((" RI: %d ::"),i);
+				//hal.console->printf((" RD: %d ::"),d);
+				new_roll = p+i+d;
+        	}
         }else{
             g.pid_optflow_roll.reset_I();
             tot_x_cm = 0;

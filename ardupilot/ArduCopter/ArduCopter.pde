@@ -345,6 +345,9 @@ static SITL sitl;
 static mavlink_optical_flow_t raw_flow_read;
 static float raw_of_x_cm, raw_of_y_cm, avg_of_alt, of_x_cm, of_y_cm, last_of_comp_x, last_of_comp_y, last_of_alt;
 static float tot_x_cm = 0, tot_y_cm = 0;  // total distance from target
+static float of_xTravelled_cm = 0, of_yTravelled_cm = 0;
+static float of_xSetPt_cm = 0, of_ySetPt_cm = 0;
+static bool b_ofSetpt = false;
 static uint32_t raw_of_last_update, of_last_update, of_alt_last_update;
 static uint32_t last_raw_of_update = 0;
 static int of_time_interval = 0;
@@ -1275,6 +1278,8 @@ static void update_optical_flow(void)
         of_x_cm = ((raw_of_x_cm)*of_time_interval);
         of_time_interval = 0;
         of_last_update = raw_of_last_update;
+        of_xTravelled_cm += of_x_cm;
+        of_yTravelled_cm += of_y_cm;
         //TOT_X += of_x_cm;
         //TOT_Y += of_y_cm;
         //hal.console->printf(("\nTOT_X: %f"), TOT_X);
@@ -1713,6 +1718,7 @@ void update_roll_pitch_mode(void)
 			update_simple_mode();
 			// convert pilot input to lean angles
 			get_pilot_desired_lean_angles(g.rc_1.control_in, g.rc_2.control_in, control_roll, control_pitch);
+			get_mavlink_desired_lean_angles(control_roll, control_pitch);
 			// mix in user control with optical flow
 			get_stabilize_roll(get_of_roll(control_roll));
 			get_stabilize_pitch(get_of_pitch(control_pitch));

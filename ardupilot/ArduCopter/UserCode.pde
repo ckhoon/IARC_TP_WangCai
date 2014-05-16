@@ -102,19 +102,27 @@ void userhook_MediumLoop()
 #define USER_MOVE1 2
 #define USER_MOVE2 3
 #define USER_HOVER2 4
-#define USER_LAND 5
+#define USER_HOVER3 5
+#define USER_LAND 6
 #define USER_RADIO_LOW	1000
 #define USER_RADIO_HIGH	2000
 
     // put your 10Hz code here
 	static uint16_t state = USER_TAKEOFF;
 	static uint16_t nHoverCounter = 0;
+	static uint16_t nMoveCounter = 0;
 	static uint16_t nMoveDistance = 0;
+	static int16_t nOfTargetX = 0;
 
 	if (g.rc_6.radio_in < USER_RADIO_LOW) {
     	//hal.console->printf(("\n radio 6 LOW-> %d"), g.rc_6.radio_in);
 		state = USER_TAKEOFF;
     	nHoverCounter = 0;
+    	nMoveCounter = 0;
+    	nMoveDistance = 0;
+    	//nOfTargetX = 0;
+    	b_ofSetpt = false;
+		forceTakeOff = false;
     }else if (g.rc_6.radio_in > USER_RADIO_HIGH) {
     	//hal.console->printf(("\n radio 6 HIGH-> %d"), g.rc_6.radio_in);
     	switch(state){
@@ -128,26 +136,65 @@ void userhook_MediumLoop()
 					else {
 						state = USER_HOVER;
 						forceTakeOff = false;
+    					nHoverCounter = 0;
 					}
     				break;
     		case USER_HOVER :
     				if (nHoverCounter++ > 50){
     					nHoverCounter = 0;
 						state = USER_MOVE1;
+    					nMoveCounter = 0;
     				}
     				break;
     		case USER_MOVE1 :
-    				if (nMoveDistance++ < 50){
-    					tot_x_cm += 2; // fly to the left
-    					//tot_y_cm += 1; // fly to the back
+    				if (nMoveCounter == 0){
+    					of_xSetPt_cm = of_xTravelled_cm;
+    					b_ofSetpt = true;
+    		            g.pid_optflow_roll.reset_I();
+    					nMoveCounter++;
     				}
-    				else if (nMoveDistance++ < 100){
-    					tot_x_cm += 1; // fly to the left
-    					//tot_y_cm += 1; // fly to the back
+    				else if (nMoveCounter < 100){
+    					nMoveCounter++;
+    					of_xSetPt_cm-=1;
     				}
-    				else {
-    					nMoveDistance = 0;
-    					state = USER_LAND;
+    				else{
+    					of_xSetPt_cm = of_xTravelled_cm;
+    					nMoveCounter = 0;
+    					b_ofSetpt = false;
+						state = USER_HOVER2;
+	   					nHoverCounter = 0;
+    				}
+     				break;
+    		case USER_HOVER2 :
+    				if (nHoverCounter++ > 100){
+    					nHoverCounter = 0;
+						state = USER_MOVE2;
+			            g.pid_optflow_roll.reset_I();
+	   					nMoveCounter = 0;
+    				}
+    				break;
+    		case USER_MOVE2 :
+					if (nMoveCounter == 0){
+						of_xSetPt_cm = of_xTravelled_cm;
+						b_ofSetpt = true;
+						nMoveCounter++;
+					}
+					else if (nMoveCounter < 100){
+						nMoveCounter++;
+						of_xSetPt_cm+=1;
+					}
+					else{
+						of_xSetPt_cm = of_xTravelled_cm;
+						nMoveCounter = 0;
+						b_ofSetpt = false;
+						state = USER_HOVER3;
+						nHoverCounter = 0;
+					}
+					break;
+    		case USER_HOVER3 :
+    				if (nHoverCounter++ > 100){
+    					nHoverCounter = 0;
+						state = USER_LAND;
     				}
     				break;
     		case USER_LAND :
@@ -176,31 +223,5 @@ void userhook_SlowLoop()
 void userhook_SuperSlowLoop()
 {
     // put your 1Hz code here
-/*
-	static bool bTakeoff = true;
-	static uint16_t nHoverCounter = 0;
-
-	if (g.rc_6.radio_in < 1000) {
-    	//hal.console->printf(("\n radio 6 LOW-> %d"), g.rc_6.radio_in);
-    	bTakeoff = true;
-    	nHoverCounter = 0;
-    }else if (g.rc_6.radio_in > 2000) {
-    	//hal.console->printf(("\n radio 6 HIGH-> %d"), g.rc_6.radio_in);
-    	if (bTakeoff) {
-    		if (current_loc.alt < 100) {
-    			controller_desired_alt += 5;
-    			if (controller_desired_alt < 60)
-    				controller_desired_alt = 60;
-    		}
-    		else
-    			bTakeoff = false;
-    	}else{
-    		if (nHoverCounter++ > 20){
-    			if (current_loc.alt > 20)
-    				controller_desired_alt -= 5;
-    		}
-    	}
-    }
-    */
 }
 #endif

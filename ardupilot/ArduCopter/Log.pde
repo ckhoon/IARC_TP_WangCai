@@ -253,10 +253,11 @@ static void Log_Write_Optflow()
         dx              : raw_flow_read.flow_comp_m_x,
         dy              : raw_flow_read.flow_comp_m_y,
         surface_quality : raw_flow_read.quality,
-        x_cm            : (int16_t) of_x_cm,
+        x_cm            : (int16_t) of_xError,
         y_cm            : (int16_t) of_y_cm,
-        latitude        : tot_x_cm, //modified to see OF total dist
-        longitude       : tot_y_cm, //modified to see OF  total dist
+        latitude        : of_xTravelled_cm, //modified to see OF total dist
+        longitude       : of_xSetPt_cm, //modified to see OF  total dist
+//        longitude       : tot_y_cm, //modified to see OF  total dist
         roll            : of_roll,
         pitch           : of_pitch
     };
